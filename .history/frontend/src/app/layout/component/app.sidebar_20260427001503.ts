@@ -16,25 +16,7 @@ import { filter, Subject, takeUntil } from 'rxjs';
     },
     styles: [],
     template: `
-    <div class="layout-sidebar keep-sidebar">
-        <!-- brand-row, orbes y hero-shell eliminados -->
-        <div class="menu-section">
-            <app-menu></app-menu>
-        </div>
-        <div class="sidebar-footer">
-            <div class="user-row" title="Ver perfil" (click)="openProfile()">
-                <div class="user-avatar">{{ authService.getUserInitial() }}</div>
-                <div class="user-info">
-                    <div class="user-name">{{ userName() }}</div>
-                    <div class="user-email">{{ userEmail() }}</div>
-                </div>
-                <!-- Burbuja de conteo eliminada -->
-                <button class="user-logout" type="button" title="Cerrar sesion" (click)="$event.stopPropagation(); logout()">
-                    <i class="pi pi-sign-out"></i>
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- Panel Keep eliminado -->
     `
 })
 export class AppSidebar implements OnInit, OnDestroy {

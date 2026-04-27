@@ -104,10 +104,10 @@ import { ColorPickerComponent } from "../color-picker/color-picker.component";
                     </div>
                 }
                 
-                <button type="button" class="tb-btn" title="Imagen" (click)="fileInput.click()">
+                <button type="button" class="tb-btn" title="Añadir imagen" (click)="fileInput.click()">
                     <i class="pi pi-image"></i>
                 </button>
-                <input type="file" #fileInput style="display: none" accept="image/*" (change)="onFileSelected($event)">
+                <input #fileInput type="file" (change)="onImageSelect($event)" accept="image/*" style="display: none" />
 
                 <button type="button" class="tb-btn" title="Archivar" (click)="archive()">
                     <i class="pi pi-inbox"></i>
@@ -327,7 +327,7 @@ export class NoteEditorComponent implements OnChanges {
         }
     }
 
-    onFileSelected(event: any) {
+    onImageSelect(event: any) {
         const file = event.target.files[0];
         if (file && this.note) {
             const reader = new FileReader();

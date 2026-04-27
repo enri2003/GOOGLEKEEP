@@ -4,7 +4,7 @@ import { FormsModule } from "@angular/forms";
 import { NoteService } from "../note.service";
 import { ColorPickerComponent } from "../color-picker/color-picker.component";
 import { ReminderPickerComponent } from "../reminder-picker/reminder-picker.component";
-import { NOTE_COLORS } from "../shared/note.model";
+import { getNoteBackground, NOTE_COLORS } from "../shared/note.model";
 
 @Component({
     selector: 'app-note-input',

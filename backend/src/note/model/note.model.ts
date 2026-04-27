@@ -38,10 +38,10 @@ export class Note {
     @Column({ type: 'timestamp', nullable: true })
     reminder: Date | null;
 
-    @Column({ nullable: true })
+    @Column({ type: 'text', nullable: true })
     image_url: string | null;
 
-    @Column({ nullable: true })
+    @Column({ type: 'text', nullable: true })
     background_image: string | null;
 
     @ManyToOne(() => Usuario, { nullable: false, onDelete: 'CASCADE' })

@@ -22,6 +22,11 @@ import { NoteService } from "../note.service";
             @if (editImageUrl) {
                 <div style="position: relative; margin: -16px -16px 10px;">
                     <img [src]="editImageUrl" style="width: 100%; max-height: 400px; object-fit: cover;" />
+                    <button type="button" 
+                            style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 4px; cursor: pointer; padding: 5px;"
+                            (click)="removeImage()">
+                        <i class="pi pi-trash"></i>
+                    </button>
                 </div>
             }
 
@@ -270,13 +275,17 @@ export class NoteEditorComponent implements OnChanges {
         if (file && this.note) {
             const reader = new FileReader();
             reader.onload = () => {
-                this.editImageUrl = reader.result as string;
-                if (this.note) {
-                    this.noteService.update(this.note.id, { image_url: this.editImageUrl } as any).subscribe();
-                }
+                const base64 = reader.result as string;
+                this.editImageUrl = base64;
+                if (this.note) this.note.image_url = base64;
             };
             reader.readAsDataURL(file);
         }
+    }
+
+    removeImage() {
+        this.editImageUrl = '';
+        if (this.note) this.note.image_url = '';
     }
 
     archive() {
@@ -321,6 +330,14 @@ export class NoteEditorComponent implements OnChanges {
 
     close() {
         if (this.note) {
+            // Sincronización final obligatoria antes de mandar al servidor
+            this.note.title = this.editTitle;
+            this.note.content = this.editContent;
+            this.note.image_url = this.editImageUrl;
+            this.note.items = this.editItems;
+            this.note.color = this.editColor;
+            this.note.pinned = this.editPinned;
+
             this.noteService.update(this.note.id, {
                 title: this.editTitle,
                 content: this.editContent,

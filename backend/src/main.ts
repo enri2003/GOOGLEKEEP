@@ -1,22 +1,25 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { json, urlencoded } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
+  app.use(json({ limit: '50mb' }));
+  app.use(urlencoded({ extended: true, limit: '50mb' }));
+
   app.enableCors({
-    origin: '*', // Reemplaza con la URL de tu frontend
-    methods: '*', // Métodos HTTP permitidos
-    // allowedHeaders: 'Content-Type, Authorization', // Encabezados permitidos
+    origin: '*', 
+    methods: '*', 
   });
 
   app.setGlobalPrefix('api/v1');
 
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,            //Elimina propiedades que no están definidas en el DTO
-    forbidNonWhitelisted: true, //Lanza un error si se envían propiedades no definidas en el DTO
-    transform: true,            //Transforma los datos de entrada al tipo definido en el DTO
+    whitelist: true,            
+    forbidNonWhitelisted: true, 
+    transform: true,            
   }));
 
   var port = 3000;

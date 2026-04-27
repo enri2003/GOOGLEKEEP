@@ -58,6 +58,15 @@ import { ColorPickerComponent } from "../color-picker/color-picker.component";
                     </div>
                 }
 
+                @if (imageUrl()) {
+                    <div class="input-image-preview">
+                        <img [src]="imageUrl()" alt="Preview" />
+                        <button class="remove-img-btn" (click)="imageUrl.set(null)">
+                            <i class="pi pi-times"></i>
+                        </button>
+                    </div>
+                }
+
                 <div class="input-footer">
                     <div class="footer-icons">
                         <button type="button" class="icon-btn-sm" title="Opciones de fondo" (click)="colorPicker.show($event, null)">
@@ -67,7 +76,11 @@ import { ColorPickerComponent } from "../color-picker/color-picker.component";
                             <i class="pi pi-bell"></i>
                         </button>
                         <button type="button" class="icon-btn-sm" title="Colaborador"><i class="pi pi-user-plus"></i></button>
-                        <button type="button" class="icon-btn-sm" title="Imagen"><i class="pi pi-image"></i></button>
+                        
+                        <button type="button" class="icon-btn-sm" title="Añadir imagen" (click)="fileInput.click()">
+                            <i class="pi pi-image"></i>
+                        </button>
+                        <input #fileInput type="file" (change)="onImageSelect($event)" accept="image/*" style="display: none" />
                     </div>
                     <div class="footer-actions">
                         <button type="button" class="btn-cancel" (click)="cancel()">Cancelar</button>
@@ -158,6 +171,28 @@ import { ColorPickerComponent } from "../color-picker/color-picker.component";
         }
         .add-item-btn:hover { color: #9aa0a6; }
 
+        .input-image-preview {
+            position: relative;
+            max-height: 450px;
+            overflow: hidden;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .input-image-preview img {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+        }
+        .remove-img-btn {
+            position: absolute; top: 12px; right: 12px;
+            background: rgba(0,0,0,0.5); color: white;
+            border: none; border-radius: 50%;
+            width: 28px; height: 28px; display: flex;
+            align-items: center; justify-content: center;
+            cursor: pointer; font-size: 14px;
+            transition: background 0.2s;
+        }
+        .remove-img-btn:hover { background: rgba(0,0,0,0.7); }
+
         .input-footer {
             display: flex; align-items: center; justify-content: space-between;
             padding: 8px 12px; border-top: 1px solid rgba(255,255,255,0.06);
@@ -204,6 +239,7 @@ export class NoteInputComponent {
     reminder = signal<Date | null>(null);
     color = signal<string>('default');
     backgroundImage = signal<string | null>(null);
+    imageUrl = signal<string | null>(null);
 
     @ViewChild('reminderPicker') reminderPicker!: ReminderPickerComponent;
     @ViewChild('colorPicker') colorPicker!: ColorPickerComponent;
@@ -231,7 +267,8 @@ export class NoteInputComponent {
             items: this.type() === 'checklist' ? this.items.filter(i => i.text) : null,
             reminder: this.reminder(),
             color: this.color(),
-            background_image: this.backgroundImage()
+            background_image: this.backgroundImage(),
+            image_url: this.imageUrl()
         };
         this.noteService.create(dto).subscribe({
             next: () => { this.saved.emit(); this.cancel(); }
@@ -246,6 +283,19 @@ export class NoteInputComponent {
         this.reminder.set(null);
         this.color.set('default');
         this.backgroundImage.set(null);
+        this.imageUrl.set(null);
+    }
+
+    onImageSelect(event: any) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+            this.imageUrl.set(e.target.result);
+            this.expanded.set(true);
+        };
+        reader.readAsDataURL(file);
     }
 
     onReminderSaved(date: Date) {

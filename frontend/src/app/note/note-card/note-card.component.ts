@@ -72,7 +72,12 @@ import { NoteService } from "../note.service";
                 <i class="pi pi-bell"></i>
             </button>
             <button class="tb" title="Colaborador"><i class="pi pi-user-plus"></i></button>
-            <button class="tb" title="Imagen"><i class="pi pi-image"></i></button>
+            
+            <button class="tb" title="Añadir imagen" (click)="fileInput.click()">
+                <i class="pi pi-image"></i>
+            </button>
+            <input #fileInput type="file" (change)="onImageSelect($event)" accept="image/*" style="display: none" />
+
             <button class="tb" title="Archivar" (click)="archive()">
                 <i class="pi pi-inbox"></i>
             </button>
@@ -154,9 +159,10 @@ import { NoteService } from "../note.service";
         .note-img {
             width: calc(100% + 28px);
             margin: -14px -14px 10px;
-            max-height: 200px;
+            max-height: 250px;
             object-fit: cover;
-            border-radius: 12px 12px 0 0;
+            border-radius: 0;
+            display: block;
         }
         .note-title {
             color: #e8eaed;
@@ -249,6 +255,18 @@ export class NoteCardComponent {
     addReminder(event: MouseEvent) {
         event.stopPropagation();
         this.reminderOpen.emit({ note: this.note, event });
+    }
+
+    onImageSelect(event: any) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+            const base64 = e.target.result;
+            this.noteService.update(this.note.id, { image_url: base64 }).subscribe();
+        };
+        reader.readAsDataURL(file);
     }
 
     toggleItem(index: number) {

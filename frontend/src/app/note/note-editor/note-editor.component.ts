@@ -20,7 +20,14 @@ import { ColorPickerComponent } from "../color-picker/color-picker.component";
 
         <!-- Área de contenido -->
         <div class="editor-body" [style.background]="noteBg()">
-
+            @if (editImageUrl) {
+                <div class="editor-image-wrap">
+                    <img [src]="editImageUrl" alt="" class="editor-img" />
+                    <button class="remove-img-btn" (click)="editImageUrl = null" title="Eliminar imagen">
+                        <i class="pi pi-times"></i>
+                    </button>
+                </div>
+            }
             <!-- Título + Pin -->
             <div class="editor-title-row">
                 <input type="text" [(ngModel)]="editTitle" placeholder="Título"
@@ -72,7 +79,12 @@ import { ColorPickerComponent } from "../color-picker/color-picker.component";
                 </div>
                 <button type="button" class="tb-btn" title="Recordatorio"><i class="pi pi-bell"></i></button>
                 <button type="button" class="tb-btn" title="Colaborador"><i class="pi pi-user-plus"></i></button>
-                <button type="button" class="tb-btn" title="Imagen"><i class="pi pi-image"></i></button>
+                
+                <button type="button" class="tb-btn" title="Añadir imagen" (click)="fileInput.click()">
+                    <i class="pi pi-image"></i>
+                </button>
+                <input #fileInput type="file" (change)="onImageSelect($event)" accept="image/*" style="display: none" />
+
                 <button type="button" class="tb-btn" title="Archivar" (click)="archive()">
                     <i class="pi pi-inbox"></i>
                 </button>
@@ -146,6 +158,27 @@ import { ColorPickerComponent } from "../color-picker/color-picker.component";
             line-height: 1.7; min-height: 120px;
         }
         .editor-textarea::placeholder { color: #5f6368; }
+        .editor-image-wrap {
+            position: relative;
+            margin: -16px -16px 12px;
+            max-height: 450px;
+            overflow: hidden;
+        }
+        .editor-img {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+        }
+        .remove-img-btn {
+            position: absolute; top: 12px; right: 12px;
+            background: rgba(0,0,0,0.5); color: white;
+            border: none; border-radius: 50%;
+            width: 32px; height: 32px; display: flex;
+            align-items: center; justify-content: center;
+            cursor: pointer; font-size: 14px;
+            transition: background 0.2s;
+        }
+        .remove-img-btn:hover { background: rgba(0,0,0,0.7); }
         .editor-timestamp {
             text-align: right; color: #5f6368; font-size: 11px; padding: 8px 0 6px;
         }
@@ -202,6 +235,7 @@ export class NoteEditorComponent implements OnChanges {
     editPinned = false;
     editColor = 'default';
     editBackgroundImage: string | null = null;
+    editImageUrl: string | null = null;
     showColors = signal(false);
     colors = NOTE_COLORS;
 
@@ -218,6 +252,7 @@ export class NoteEditorComponent implements OnChanges {
             this.editPinned = this.note.pinned;
             this.editColor = this.note.color ?? 'default';
             this.editBackgroundImage = this.note.background_image ?? null;
+            this.editImageUrl = this.note.image_url ?? null;
             this.history = [];
             this.historyIndex = -1;
             this.pushHistory();
@@ -289,6 +324,18 @@ export class NoteEditorComponent implements OnChanges {
         }
     }
 
+    onImageSelect(event: any) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+            this.editImageUrl = e.target.result;
+            this.applyColor(); // Guardar cambios inmediatamente (color/imagen)
+        };
+        reader.readAsDataURL(file);
+    }
+
     close() {
         if (this.note) {
             this.noteService.update(this.note.id, {
@@ -298,6 +345,7 @@ export class NoteEditorComponent implements OnChanges {
                 pinned: this.editPinned,
                 color: this.editColor,
                 background_image: this.editBackgroundImage,
+                image_url: this.editImageUrl,
             } as any).subscribe();
         }
         this.showColors.set(false);

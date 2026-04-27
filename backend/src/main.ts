@@ -14,10 +14,15 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,            //Elimina propiedades que no están definidas en el DTO
-    forbidNonWhitelisted: true, //Lanza un error si se envían propiedades no definidas en el DTO
-    transform: true,            //Transforma los datos de entrada al tipo definido en el DTO
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
   }));
+
+  // Aumentar el límite de carga para imágenes Base64
+  const express = require('express');
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
   var port = 3000;
   await app.listen(port);

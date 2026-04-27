@@ -262,9 +262,9 @@ export class NoteListComponent implements OnInit {
         this.noteService.load(this.mode());
     }
 
-    onMenuOpen({ note, event }: { note: Note; event: MouseEvent }) {
+    onMenuOpen({ note, target }: { note: Note; target: HTMLElement }) {
         this.menuNote.set(note);
-        setTimeout(() => this.noteMenu?.open(event), 0);
+        setTimeout(() => this.noteMenu?.open(target), 0);
     }
 
     onReminderOpen({ note, event }: { note: Note; event: MouseEvent }) {

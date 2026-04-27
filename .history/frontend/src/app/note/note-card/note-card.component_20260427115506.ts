@@ -65,23 +65,28 @@ import { NoteService } from "../note.service";
         }
 
         <div class="card-toolbar" (click)="$event.stopPropagation()">
+<<<<<<< HEAD
+            <button class="tb" [title]="note.reminder ? 'Quitar recordatorio' : 'Añadir recordatorio'" (click)="toggleReminder($event)">
+                <i class="pi pi-bell" [style.color]="note.reminder ? '#FBBC04' : ''"></i>
+=======
             <button class="tb" title="Opciones de fondo" (click)="colorOpen.emit({ note: this.note, event: $event })">
                 <i class="pi pi-palette"></i>
             </button>
             <button class="tb" title="Recordatorio" (click)="addReminder($event)">
                 <i class="pi pi-bell"></i>
+>>>>>>> af70188 (mejoras)
             </button>
             <button class="tb" title="Colaborador"><i class="pi pi-user-plus"></i></button>
             
-            <button class="tb" title="Añadir imagen" (click)="fileInput.click()">
+            <input type="file" #fileInput style="display: none" accept="image/*" (change)="onFileSelected($event)">
+            <button class="tb" title="Imagen" (click)="fileInput.click()">
                 <i class="pi pi-image"></i>
             </button>
-            <input #fileInput type="file" (change)="onImageSelect($event)" accept="image/*" style="display: none" />
 
             <button class="tb" title="Archivar" (click)="archive()">
                 <i class="pi pi-inbox"></i>
             </button>
-            <button #menuBtn class="tb" title="Más opciones" (click)="openMenu($event, menuBtn)">
+            <button class="tb" title="Más opciones" (click)="openMenu($event)">
                 <i class="pi pi-ellipsis-v"></i>
             </button>
         </div>
@@ -159,10 +164,9 @@ import { NoteService } from "../note.service";
         .note-img {
             width: calc(100% + 28px);
             margin: -14px -14px 10px;
-            max-height: 250px;
+            max-height: 200px;
             object-fit: cover;
-            border-radius: 0;
-            display: block;
+            border-radius: 12px 12px 0 0;
         }
         .note-title {
             color: #e8eaed;
@@ -235,7 +239,7 @@ import { NoteService } from "../note.service";
 export class NoteCardComponent {
     @Input() note!: Note;
     @Output() edit = new EventEmitter<Note>();
-    @Output() menuOpen = new EventEmitter<{ note: Note; target: HTMLElement }>();
+    @Output() menuOpen = new EventEmitter<{ note: Note; event: MouseEvent }>();
     @Output() reminderOpen = new EventEmitter<{ note: Note; event: MouseEvent }>();
     @Output() colorOpen = new EventEmitter<{ note: Note; event: MouseEvent }>();
 
@@ -252,21 +256,32 @@ export class NoteCardComponent {
 
     archive() { this.noteService.toggleArchive(this.note.id).subscribe(); }
 
-    addReminder(event: MouseEvent) {
+    toggleReminder(event: MouseEvent) {
         event.stopPropagation();
-        this.reminderOpen.emit({ note: this.note, event });
+<<<<<<< HEAD
+        if (this.note) {
+            // Si tiene recordatorio, lo ponemos en null. Si no tiene, le ponemos la fecha actual.
+            const newReminder = this.note.reminder ? null : new Date();
+            this.noteService.update(this.note.id, { reminder: newReminder } as any).subscribe(() => {
+                this.note.reminder = newReminder as any;
+            });
+        }
     }
 
-    onImageSelect(event: any) {
+    onFileSelected(event: any) {
         const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-            const base64 = e.target.result;
-            this.noteService.update(this.note.id, { image_url: base64 }).subscribe();
-        };
-        reader.readAsDataURL(file);
+        if (file && this.note) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const imageUrl = reader.result as string;
+                this.note.image_url = imageUrl;
+                this.noteService.update(this.note.id, { image_url: imageUrl } as any).subscribe();
+            };
+            reader.readAsDataURL(file);
+        }
+=======
+        this.reminderOpen.emit({ note: this.note, event });
+>>>>>>> af70188 (mejoras)
     }
 
     toggleItem(index: number) {
@@ -277,9 +292,9 @@ export class NoteCardComponent {
         this.noteService.update(this.note.id, { items: updatedItems }).subscribe();
     }
 
-    openMenu(event: MouseEvent, target: HTMLElement) {
+    openMenu(event: MouseEvent) {
         event.stopPropagation();
-        this.menuOpen.emit({ note: this.note, target });
+        this.menuOpen.emit({ note: this.note, event });
     }
 
     formatReminder(reminder: string) {

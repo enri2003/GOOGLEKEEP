@@ -65,7 +65,7 @@ import { getNoteBackground, NOTE_COLORS } from "../shared/note.model";
                 } @else {
                     <textarea [(ngModel)]="content" placeholder="Crear una nota..."
                               class="input-textarea" rows="1"
-                              (input)="$event.target.style.height='auto'; $event.target.style.height=$event.target.scrollHeight+'px'"></textarea>
+                              (input)="autoResize($event)"></textarea>
                 }
 
                 <!-- Tags for collaborators and reminders -->
@@ -276,6 +276,12 @@ export class NoteInputComponent {
         if (t === 'checklist' && this.items.length === 0) {
             this.items = [{ text: '', checked: false }];
         }
+    }
+
+    autoResize(event: any) {
+        const textarea = event.target as HTMLTextAreaElement;
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
     }
 
     addItem() { this.items.push({ text: '', checked: false }); }

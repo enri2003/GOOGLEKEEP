@@ -1,0 +1,15 @@
+{
+  "name": "googlekeep",
+  "private": true,
+  "scripts": {
+    "start:backend": "cd backend && npm run start:dev",
+    "start:frontend": "cd frontend && npm run start",
+    "start:dev": "npm-run-all --parallel start:backend start:frontend",
+    "install:all": "npm-run-all install:backend install:frontend",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend && npm install"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}

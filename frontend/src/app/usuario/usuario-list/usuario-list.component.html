@@ -1,0 +1,33 @@
+<div class="card">
+    <div class="card flex justify-center">
+        <button pButton (click)="createUsuario()">
+            <i class="pi pi-plus" pButtonIcon></i>
+            <span pButtonLabel>Nuevo Usuario</span>
+        </button>
+    </div>
+
+    <p-table [value]="dataUsuarios()" [tableStyle]="{ 'min-width': '50rem' }">
+        <ng-template #header>
+            <tr>
+                <th scope="col">Nombre</th>
+                <th scope="col">Email</th>
+                <th scope="col">Fecha de Actualizacion</th>
+                <th scope="col">Acciones</th>
+            </tr>
+        </ng-template>
+        <ng-template #body let-item>
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.email }}</td>
+                <td>{{ item.updated_at | date:'MM/dd/yyyy' }}</td>
+                <td>
+                    <button pButton type="button" (click)="updateUsuario(item)" icon="pi pi-pencil" class="p-button-rounded p-button-text"></button>
+                    <button pButton type="button" (click)="deleteUsuario(item)" icon="pi pi-trash" severity="danger" class="p-button-rounded p-button-text"></button>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <p-confirmdialog />
+    <app-usuario (messageEvent)="loadUsuarios()"></app-usuario>
+</div>

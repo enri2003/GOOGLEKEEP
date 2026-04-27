@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: googlekeep-pos
+    restart: always
+    environment:
+      POSTGRES_USER: sa
+      POSTGRES_PASSWORD: "1844"
+      POSTGRES_DB: googlekeep-db
+    ports:
+      - "5522:5432"
+    volumes:
+      - googlekeep_data:/var/lib/postgresql/data
+
+volumes:
+  googlekeep_data:

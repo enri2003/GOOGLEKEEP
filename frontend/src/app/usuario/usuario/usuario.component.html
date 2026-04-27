@@ -1,0 +1,28 @@
+<p-dialog
+    [visible]="visible()"
+    [style]="{ width: '450px' }"
+    header="Edit Profile"
+    [modal]="true"
+    (onHide)="closeDialog()">
+
+    <p class="text-sm text-gray-500 mb-4">Update your information.</p>
+
+    <div class="flex flex-col gap-2 mb-3">
+        <label for="nombre" class="font-semibold">Nombre</label>
+        <input pInputText id="nombre" [(ngModel)]="formData.name" class="flex-auto" autocomplete="off" placeholder="Ingresar username" />
+    </div>
+    <div class="flex flex-col gap-2 mb-3">
+        <label for="email" class="font-semibold">Email</label>
+        <input pInputText id="email" type="email" [(ngModel)]="formData.email" class="flex-auto" autocomplete="off" placeholder="Ingresar email" />
+    </div>
+    <div class="flex flex-col gap-2 mb-3">
+        <label for="password" class="font-semibold">Password</label>
+        <input pInputText id="password" type="password" [(ngModel)]="formData.password" class="flex-auto" autocomplete="off" placeholder="Ingresar password" />
+    </div>
+
+    <div class="flex justify-end gap-2">
+        <p-button label="Cancel" severity="secondary" (onClick)="closeDialog()" />
+        <p-button label="Save" icon="pi pi-check" (onClick)="saveChanges()" />
+    </div>
+
+</p-dialog>

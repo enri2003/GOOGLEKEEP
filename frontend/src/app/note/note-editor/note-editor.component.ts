@@ -62,11 +62,22 @@ import { NoteService } from "../note.service";
                           class="editor-textarea" rows="7"></textarea>
             }
 
+            @if (editCollaborators.length > 0) {
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;">
+                    @for (email of editCollaborators; track email) {
+                        <span style="background: rgba(255,255,255,0.1); color: #e8eaed; padding: 3px 10px; border-radius: 12px; font-size: 11px; display: inline-flex; align-items: center; gap: 5px;">
+                            <i class="pi pi-user" style="font-size: 9px;"></i> {{ email }}
+                            <i class="pi pi-times" style="cursor:pointer; font-size: 9px;" (click)="removeCollaborator(email)"></i>
+                        </span>
+                    }
+                </div>
+            }
+
             <div class="editor-timestamp">Editado: {{ now() }}</div>
         </div>
 
         <div class="editor-toolbar" [style.background]="noteBg()">
-            <div class="toolbar-left">
+            <div class="toolbar-left" style="position: relative;">
                 <button type="button" class="tb-btn" title="Estilo de texto"><b style="font-size:13px;font-family:serif">A</b></button>
                 
                 <div class="color-picker-wrap">
@@ -93,8 +104,24 @@ import { NoteService } from "../note.service";
                         </div>
                     }
                 </div>
+                
                 <button type="button" class="tb-btn" title="Recordatorio"><i class="pi pi-bell"></i></button>
-                <button type="button" class="tb-btn" title="Colaborador"><i class="pi pi-user-plus"></i></button>
+                
+                <button type="button" class="tb-btn" title="Colaborador" (click)="showShare = !showShare">
+                    <i class="pi pi-user-plus"></i>
+                </button>
+
+                @if (showShare) {
+                    <div style="position: absolute; bottom: 45px; left: 0; background: #3c3d40; padding: 12px; border-radius: 8px; z-index: 110; width: 250px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);">
+                        <input type="email" [(ngModel)]="shareEmail" placeholder="Correo del colaborador" 
+                               (keyup.enter)="addCollaborator()"
+                               style="width: 100%; background: #202124; border: 1px solid #5f6368; color: white; padding: 8px; border-radius: 4px; font-size: 12px; outline: none;">
+                        <button type="button" (click)="addCollaborator()" 
+                                style="margin-top: 8px; width: 100%; background: #FBBC04; border: none; color: #1a1200; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px;">
+                            Compartir
+                        </button>
+                    </div>
+                }
                 
                 <input type="file" #fileInput style="display: none" accept="image/*" (change)="onFileSelected($event)">
                 <button type="button" class="tb-btn" title="Imagen" (click)="fileInput.click()">
@@ -230,7 +257,11 @@ export class NoteEditorComponent implements OnChanges {
     editItems: NoteItem[] = [];
     editPinned = false;
     editColor = 'default';
+    editCollaborators: string[] = [];
+
     showColors = signal(false);
+    showShare = false;
+    shareEmail = '';
     colors = NOTE_COLORS;
 
     private history: { title: string; content: string; items: NoteItem[] }[] = [];
@@ -244,6 +275,8 @@ export class NoteEditorComponent implements OnChanges {
             this.editItems = this.note.items ? this.note.items.map(i => ({ ...i })) : [];
             this.editPinned = this.note.pinned;
             this.editColor = this.note.color ?? 'default';
+            this.editCollaborators = this.note.collaborators ? [...this.note.collaborators] : [];
+            
             this.history = [];
             this.historyIndex = -1;
             this.pushHistory();
@@ -260,6 +293,21 @@ export class NoteEditorComponent implements OnChanges {
 
     addItem() { this.editItems.push({ text: '', checked: false }); }
     removeItem(i: number) { this.editItems.splice(i, 1); }
+
+    addCollaborator() {
+        if (this.shareEmail.trim() && !this.editCollaborators.includes(this.shareEmail)) {
+            this.editCollaborators.push(this.shareEmail.trim());
+            if (this.note) {
+                this.noteService.shareNote(this.note.id, this.shareEmail.trim()).subscribe();
+            }
+            this.shareEmail = '';
+            this.showShare = false;
+        }
+    }
+
+    removeCollaborator(email: string) {
+        this.editCollaborators = this.editCollaborators.filter(e => e !== email);
+    }
 
     togglePin() {
         this.editPinned = !this.editPinned;
@@ -330,13 +378,13 @@ export class NoteEditorComponent implements OnChanges {
 
     close() {
         if (this.note) {
-            // Sincronización final obligatoria antes de mandar al servidor
             this.note.title = this.editTitle;
             this.note.content = this.editContent;
             this.note.image_url = this.editImageUrl;
             this.note.items = this.editItems;
             this.note.color = this.editColor;
             this.note.pinned = this.editPinned;
+            this.note.collaborators = this.editCollaborators;
 
             this.noteService.update(this.note.id, {
                 title: this.editTitle,
@@ -345,9 +393,11 @@ export class NoteEditorComponent implements OnChanges {
                 items: this.note.type === 'checklist' ? this.editItems : undefined,
                 pinned: this.editPinned,
                 color: this.editColor,
+                collaborators: this.editCollaborators
             }).subscribe();
         }
         this.showColors.set(false);
+        this.showShare = false;
         this.visible.set(false);
         this.closed.emit();
     }

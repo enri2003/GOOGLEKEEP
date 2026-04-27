@@ -69,4 +69,17 @@ export class NoteService {
             tap(() => this.load(this.mode()))
         );
     }
+
+    shareNote(noteId: number, email: string) {
+        return this.http.basePost('notesharecontroller/save', { 
+            noteId: noteId, 
+            email: email 
+        }).pipe(
+            tap(() => this.load(this.mode()))
+        );
+    }
+
+    searchUsers(query: string) {
+        return this.http.basePost('usuariocontroller/getall', { q: query });
+    }
 }

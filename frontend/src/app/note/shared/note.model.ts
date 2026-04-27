@@ -18,11 +18,12 @@ export interface Note {
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
+    collaborators?: string[];
 }
 
 export const NOTE_COLORS: { name: string; value: string; bg: string }[] = [
     { name: 'Default', value: 'default', bg: '#28292c' },
-    { name: 'Rojo',    value: 'red',     bg: '#5c2b29' },
+    { name: 'Rojo',     value: 'red',     bg: '#5c2b29' },
     { name: 'Naranja', value: 'orange',  bg: '#614a19' },
     { name: 'Amarillo',value: 'yellow',  bg: '#635d19' },
     { name: 'Verde',   value: 'green',   bg: '#345920' },

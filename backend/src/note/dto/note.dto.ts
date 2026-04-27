@@ -1,6 +1,5 @@
 import { IsArray, IsBoolean, IsDateString, IsIn, IsOptional, IsString, MaxLength } from "class-validator";
 
-// Alias para compatibilidad con módulos existentes
 export class NoteDto {
     @IsOptional() id?: number;
     @IsOptional() @IsString() title?: string;
@@ -41,6 +40,11 @@ export class CreateNoteDto {
     @IsOptional()
     @IsString()
     image_url?: string;
+
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    collaborators?: string[];
 }
 
 export class UpdateNoteDto {
@@ -80,4 +84,9 @@ export class UpdateNoteDto {
     @IsOptional()
     @IsString()
     image_url?: string;
+
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    collaborators?: string[];
 }

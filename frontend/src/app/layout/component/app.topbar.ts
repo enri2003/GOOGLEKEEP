@@ -5,11 +5,13 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '@/app/core/auth.service';
 import { LayoutService } from '@/app/layout/service/layout.service';
 import { NoteService } from '@/app/note/note.service';
+import { MenuModule } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
 
 @Component({
     selector: 'app-topbar',
     standalone: true,
-    imports: [RouterModule, CommonModule, FormsModule],
+    imports: [RouterModule, CommonModule, FormsModule, MenuModule],
     styles: [],
     template: `
     <div class="layout-topbar keep-topbar">
@@ -59,9 +61,12 @@ import { NoteService } from '@/app/note/note.service';
                     [ngClass]="layoutService.viewMode() === 'grid' ? 'pi-th-large' : 'pi-bars'"
                 ></i>
             </button>
-            <button class="action-btn" title="Configuracion">
+            
+            <button #settingsBtn class="action-btn" title="Configuracion" (click)="settingsMenu.toggle($event)">
                 <i class="pi pi-cog"></i>
             </button>
+            <p-menu #settingsMenu [model]="settingsItems" [popup]="true" appendTo="body" styleClass="keep-menu" />
+
             <button class="action-btn" title="Cerrar sesion" (click)="logout()">
                 <i class="pi pi-sign-out"></i>
             </button>
@@ -78,6 +83,15 @@ export class AppTopbar {
     authService = inject(AuthService);
     noteService = inject(NoteService);
     refreshing = signal(false);
+
+    settingsItems: MenuItem[] = [
+        { label: 'Configuración', command: () => {} },
+        { label: 'Enviar comentarios', command: () => {} },
+        { label: 'Ayuda', command: () => {} },
+        { label: 'Descargas de apps', command: () => {} },
+        { label: 'Combinaciones de teclas', command: () => {} }
+    ];
+
     menuOpen = computed(() => {
         const state = this.layoutService.layoutState();
         const config = this.layoutService.layoutConfig();

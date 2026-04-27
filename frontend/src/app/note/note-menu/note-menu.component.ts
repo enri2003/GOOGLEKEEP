@@ -9,7 +9,7 @@ import { NoteService } from "../note.service";
     selector: 'app-note-menu',
     standalone: true,
     imports: [CommonModule, MenuModule],
-    template: `<p-menu #menu [model]="items" [popup]="true" appendTo="body" />`
+    template: `<p-menu #menu [model]="items" [popup]="true" appendTo="body" styleClass="keep-menu" />`
 })
 export class NoteMenuComponent implements OnChanges {
     @Input() note: Note | null = null;
@@ -48,42 +48,27 @@ export class NoteMenuComponent implements OnChanges {
         } else {
             this.items = [
                 {
-                    label: 'Agregar recordatorio',
-                    icon: 'pi pi-bell',
-                    command: () => {
-                        if (this.note) {
-                            // Esto guarda la fecha actual en la BD para que el recordatorio sea visible
-                            this.noteService.update(this.note.id, { reminder: new Date() } as any).subscribe();
-                        }
-                    }
-                },
-                {
                     label: 'Borrar la nota',
-                    icon: 'pi pi-trash',
                     command: () => {
                         if (this.note) this.noteService.softDelete(this.note.id).subscribe(() => this.deleted.emit());
                     }
                 },
                 {
+                    label: 'Agregar etiqueta',
+                    command: () => { /* TODO: label picker */ }
+                },
+                {
+                    label: 'Agregar dibujo',
+                    command: () => { /* mock */ }
+                },
+                {
                     label: 'Hacer una copia',
-                    icon: 'pi pi-copy',
                     command: () => {
                         if (this.note) this.noteService.duplicate(this.note.id).subscribe();
                     }
                 },
                 {
-                    label: 'Agregar etiqueta',
-                    icon: 'pi pi-tag',
-                    command: () => { /* TODO: label picker */ }
-                },
-                {
-                    label: 'Agregar dibujo',
-                    icon: 'pi pi-pencil',
-                    command: () => { /* mock */ }
-                },
-                {
                     label: this.note?.type === 'checklist' ? 'Ocultar casillas de verificación' : 'Mostrar casillas de verificación',
-                    icon: 'pi pi-check-square',
                     command: () => {
                         if (!this.note) return;
                         const newType = this.note.type === 'checklist' ? 'text' : 'checklist';
@@ -91,21 +76,26 @@ export class NoteMenuComponent implements OnChanges {
                     }
                 },
                 {
-                    label: 'Copiar en Google Docs',
-                    icon: 'pi pi-file',
+                    label: 'Copiar en Documentos de Google',
                     command: () => { /* mock */ }
                 },
                 {
                     label: 'Historial de versiones',
-                    icon: 'pi pi-history',
                     command: () => { /* mock */ }
                 }
             ];
         }
     }
 
-    open(event: MouseEvent) {
+    open(target: HTMLElement) {
         this.buildMenu();
-        this.menu.toggle(event);
+        // Simulación de evento para posicionar correctamente abajo
+        const mockEvent = {
+            currentTarget: target,
+            target: target,
+            preventDefault: () => {},
+            stopPropagation: () => {}
+        };
+        this.menu.toggle(mockEvent as any);
     }
 }

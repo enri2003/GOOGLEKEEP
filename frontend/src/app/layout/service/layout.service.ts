@@ -125,6 +125,10 @@ export class LayoutService {
         return !this.isDesktop();
     }
 
+    onDarkThemeToggle() {
+        this.layoutConfig.update((prev) => ({ ...prev, darkTheme: !prev.darkTheme }));
+    }
+
     toggleViewMode() {
         this.viewMode.set(this.viewMode() === 'grid' ? 'list' : 'grid');
     }

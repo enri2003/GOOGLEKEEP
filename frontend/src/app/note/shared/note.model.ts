@@ -14,6 +14,7 @@ export interface Note {
     archived: boolean;
     reminder: string | null;
     image_url: string | null;
+    background_image: string | null;
     activo: boolean;
     created_at: string;
     updated_at: string;

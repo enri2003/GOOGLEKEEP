@@ -41,6 +41,10 @@ export class CreateNoteDto {
     @IsOptional()
     @IsString()
     image_url?: string;
+
+    @IsOptional()
+    @IsString()
+    background_image?: string;
 }
 
 export class UpdateNoteDto {
@@ -80,4 +84,8 @@ export class UpdateNoteDto {
     @IsOptional()
     @IsString()
     image_url?: string;
+
+    @IsOptional()
+    @IsString()
+    background_image?: string;
 }

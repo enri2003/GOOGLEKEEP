@@ -1,19 +1,20 @@
-import { Component, EventEmitter, inject, Input, OnChanges, Output, signal } from "@angular/core";
+import { Component, EventEmitter, inject, Input, OnChanges, Output, signal, ViewChild } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { DialogModule } from "primeng/dialog";
 import { Note, NoteItem, getNoteBackground, NOTE_COLORS } from "../shared/note.model";
 import { NoteService } from "../note.service";
+import { ColorPickerComponent } from "../color-picker/color-picker.component";
 
 @Component({
     selector: 'app-note-editor',
     standalone: true,
-    imports: [CommonModule, FormsModule, DialogModule],
+    imports: [CommonModule, FormsModule, DialogModule, ColorPickerComponent],
     template: `
     <p-dialog [visible]="visible()" (onHide)="close()"
               [modal]="true" [draggable]="false" [resizable]="false"
               [style]="{width:'600px', 'max-width':'95vw', 'border-radius':'10px'}"
-              [contentStyle]="{'background': noteBg(), 'border-radius': '10px', 'padding': '0', 'border': 'none'}"
+              [contentStyle]="{'background': noteBg(), 'background-image': editBackgroundImage ? 'url(' + editBackgroundImage + ')' : 'none', 'background-size': 'cover', 'background-position': 'center', 'border-radius': '10px', 'padding': '0', 'border': 'none'}"
               [showHeader]="false"
               styleClass="note-editor-dialog">
 
@@ -61,31 +62,13 @@ import { NoteService } from "../note.service";
         <!-- Toolbar inferior -->
         <div class="editor-toolbar" [style.background]="noteBg()">
             <div class="toolbar-left">
-                <button type="button" class="tb-btn" title="Estilo de texto"><b style="font-size:13px;font-family:serif">A</b></button>
                 <!-- Color picker -->
                 <div class="color-picker-wrap">
-                    <button type="button" class="tb-btn" title="Color de fondo"
-                            (click)="showColors.set(!showColors())">
+                    <button type="button" class="tb-btn" title="Opciones de fondo"
+                            (click)="colorPicker.show($event, note)">
                         <i class="pi pi-palette"></i>
                     </button>
-                    @if (showColors()) {
-                        <div class="color-popup">
-                            @for (c of colors; track c.value) {
-                                <button type="button" class="color-dot"
-                                        [style.background]="c.bg"
-                                        [title]="c.name"
-                                        [class.selected]="editColor === c.value"
-                                        (click)="editColor = c.value; showColors.set(false); applyColor()">
-                                    @if (c.value === 'default') {
-                                        <i class="pi pi-times" style="font-size:9px;color:#9aa0a6"></i>
-                                    }
-                                    @if (editColor === c.value && c.value !== 'default') {
-                                        <i class="pi pi-check" style="font-size:9px;color:white"></i>
-                                    }
-                                </button>
-                            }
-                        </div>
-                    }
+                    <app-color-picker #colorPicker (colorChanged)="editColor = $event; applyColor()" (imageChanged)="editBackgroundImage = $event; applyColor()" />
                 </div>
                 <button type="button" class="tb-btn" title="Recordatorio"><i class="pi pi-bell"></i></button>
                 <button type="button" class="tb-btn" title="Colaborador"><i class="pi pi-user-plus"></i></button>
@@ -218,8 +201,11 @@ export class NoteEditorComponent implements OnChanges {
     editItems: NoteItem[] = [];
     editPinned = false;
     editColor = 'default';
+    editBackgroundImage: string | null = null;
     showColors = signal(false);
     colors = NOTE_COLORS;
+
+    @ViewChild('colorPicker') colorPicker!: ColorPickerComponent;
 
     private history: { title: string; content: string; items: NoteItem[] }[] = [];
     private historyIndex = -1;
@@ -231,6 +217,7 @@ export class NoteEditorComponent implements OnChanges {
             this.editItems = this.note.items ? this.note.items.map(i => ({ ...i })) : [];
             this.editPinned = this.note.pinned;
             this.editColor = this.note.color ?? 'default';
+            this.editBackgroundImage = this.note.background_image ?? null;
             this.history = [];
             this.historyIndex = -1;
             this.pushHistory();
@@ -254,7 +241,12 @@ export class NoteEditorComponent implements OnChanges {
     }
 
     applyColor() {
-        if (this.note) this.noteService.update(this.note.id, { color: this.editColor }).subscribe();
+        if (this.note) {
+            this.noteService.update(this.note.id, { 
+                color: this.editColor,
+                background_image: this.editBackgroundImage
+            } as any).subscribe();
+        }
     }
 
     archive() {
@@ -305,7 +297,8 @@ export class NoteEditorComponent implements OnChanges {
                 items: this.note.type === 'checklist' ? this.editItems : undefined,
                 pinned: this.editPinned,
                 color: this.editColor,
-            }).subscribe();
+                background_image: this.editBackgroundImage,
+            } as any).subscribe();
         }
         this.showColors.set(false);
         this.visible.set(false);

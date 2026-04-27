@@ -7,12 +7,14 @@ import { NoteInputComponent } from "../note-input/note-input.component";
 import { NoteCardComponent } from "../note-card/note-card.component";
 import { NoteEditorComponent } from "../note-editor/note-editor.component";
 import { NoteMenuComponent } from "../note-menu/note-menu.component";
+import { ReminderPickerComponent } from "../reminder-picker/reminder-picker.component";
+import { ColorPickerComponent } from "../color-picker/color-picker.component";
 import { LayoutService } from '@/app/layout/service/layout.service';
 
 @Component({
     selector: 'app-note-list',
     standalone: true,
-    imports: [CommonModule, NoteInputComponent, NoteCardComponent, NoteEditorComponent, NoteMenuComponent],
+    imports: [CommonModule, NoteInputComponent, NoteCardComponent, NoteEditorComponent, NoteMenuComponent, ReminderPickerComponent, ColorPickerComponent],
     template: `
     <div class="notes-page">
 
@@ -37,11 +39,13 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 <i class="pi pi-thumbtack"></i>
                 <span>Fijadas</span>
             </div>
-            <div class="notes-grid">
+            <div [ngClass]="viewMode === 'grid' ? 'notes-grid' : 'notes-list'">
                 @for (note of pinnedNotes(); track note.id) {
                     <app-note-card [note]="note"
                                    (edit)="openEditor($event)"
-                                   (menuOpen)="onMenuOpen($event)" />
+                                   (menuOpen)="onMenuOpen($event)"
+                                   (reminderOpen)="onReminderOpen($event)"
+                                   (colorOpen)="onColorOpen($event)" />
                 }
             </div>
 
@@ -60,7 +64,9 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 @for (note of otherNotes(); track note.id) {
                     <app-note-card [note]="note"
                                    (edit)="openEditor($event)"
-                                   (menuOpen)="onMenuOpen($event)" />
+                                   (menuOpen)="onMenuOpen($event)"
+                                   (reminderOpen)="onReminderOpen($event)"
+                                   (colorOpen)="onColorOpen($event)" />
                 }
             </div>
         }
@@ -85,6 +91,12 @@ import { LayoutService } from '@/app/layout/service/layout.service';
 
         <!-- Menú contextual -->
         <app-note-menu #noteMenu [note]="menuNote()" [mode]="mode()" />
+
+        <!-- Selector de recordatorio -->
+        <app-reminder-picker #reminderPicker />
+
+        <!-- Selector de color/fondo -->
+        <app-color-picker #colorPicker />
     </div>
     `,
     styles: [`:host { display: block; }`, `
@@ -184,7 +196,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
         }
         .notes-list app-note-card {
             width: 100%;
-            max-width: 900px;
+            max-width: 620px;
             margin: 0 auto;
         }
     `]
@@ -200,6 +212,8 @@ export class NoteListComponent implements OnInit {
     menuNote = signal<Note | null>(null);
 
     @ViewChild('noteMenu') noteMenu!: NoteMenuComponent;
+    @ViewChild('reminderPicker') reminderPicker!: ReminderPickerComponent;
+    @ViewChild('colorPicker') colorPicker!: ColorPickerComponent;
 
     ngOnInit() {
         this.route.data.subscribe((data: any) => {
@@ -251,6 +265,14 @@ export class NoteListComponent implements OnInit {
     onMenuOpen({ note, event }: { note: Note; event: MouseEvent }) {
         this.menuNote.set(note);
         setTimeout(() => this.noteMenu?.open(event), 0);
+    }
+
+    onReminderOpen({ note, event }: { note: Note; event: MouseEvent }) {
+        this.reminderPicker.show(event, note);
+    }
+
+    onColorOpen({ note, event }: { note: Note; event: MouseEvent }) {
+        this.colorPicker.show(event, note);
     }
 
     get viewMode() {

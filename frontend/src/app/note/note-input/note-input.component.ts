@@ -1,14 +1,16 @@
-import { Component, EventEmitter, inject, Output, signal } from "@angular/core";
+import { Component, EventEmitter, inject, Output, signal, ViewChild } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 import { NoteService } from "../note.service";
+import { ReminderPickerComponent } from "../reminder-picker/reminder-picker.component";
+import { ColorPickerComponent } from "../color-picker/color-picker.component";
 
 @Component({
     selector: 'app-note-input',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, ReminderPickerComponent, ColorPickerComponent],
     template: `
-    <div class="note-input-wrapper">
+    <div class="note-input-wrapper" [style.background]="noteBg()" [style.background-image]="backgroundImage() ? 'url(' + backgroundImage() + ')' : 'none'">
         @if (!expanded()) {
             <!-- Barra colapsada -->
             <div class="input-collapsed" (click)="expand('text')">
@@ -58,7 +60,12 @@ import { NoteService } from "../note.service";
 
                 <div class="input-footer">
                     <div class="footer-icons">
-                        <button type="button" class="icon-btn-sm" title="Recordatorio"><i class="pi pi-bell"></i></button>
+                        <button type="button" class="icon-btn-sm" title="Opciones de fondo" (click)="colorPicker.show($event, null)">
+                            <i class="pi pi-palette"></i>
+                        </button>
+                        <button type="button" class="icon-btn-sm" title="Recordatorio" (click)="reminderPicker.show($event, null)">
+                            <i class="pi pi-bell"></i>
+                        </button>
                         <button type="button" class="icon-btn-sm" title="Colaborador"><i class="pi pi-user-plus"></i></button>
                         <button type="button" class="icon-btn-sm" title="Imagen"><i class="pi pi-image"></i></button>
                     </div>
@@ -69,6 +76,8 @@ import { NoteService } from "../note.service";
                 </div>
             </div>
         }
+        <app-reminder-picker #reminderPicker (saved)="onReminderSaved($event)" />
+        <app-color-picker #colorPicker (colorChanged)="onColorChanged($event)" (imageChanged)="onImageChanged($event)" />
     </div>
     `,
     styles: [`
@@ -192,6 +201,12 @@ export class NoteInputComponent {
     title = '';
     content = '';
     items: { text: string; checked: boolean }[] = [];
+    reminder = signal<Date | null>(null);
+    color = signal<string>('default');
+    backgroundImage = signal<string | null>(null);
+
+    @ViewChild('reminderPicker') reminderPicker!: ReminderPickerComponent;
+    @ViewChild('colorPicker') colorPicker!: ColorPickerComponent;
 
     expand(t: 'text' | 'checklist') {
         this.type.set(t);
@@ -214,6 +229,9 @@ export class NoteInputComponent {
             type: this.type(),
             content: this.type() === 'text' ? this.content : '',
             items: this.type() === 'checklist' ? this.items.filter(i => i.text) : null,
+            reminder: this.reminder(),
+            color: this.color(),
+            background_image: this.backgroundImage()
         };
         this.noteService.create(dto).subscribe({
             next: () => { this.saved.emit(); this.cancel(); }
@@ -225,5 +243,31 @@ export class NoteInputComponent {
         this.title = '';
         this.content = '';
         this.items = [];
+        this.reminder.set(null);
+        this.color.set('default');
+        this.backgroundImage.set(null);
+    }
+
+    onReminderSaved(date: Date) {
+        this.reminder.set(date);
+    }
+
+    onColorChanged(c: string) {
+        this.color.set(c);
+    }
+
+    onImageChanged(img: string | null) {
+        this.backgroundImage.set(img);
+    }
+
+    noteBg() {
+        if (this.color() === 'default') return '';
+        // Mocking getNoteBackground logic here or import it
+        const colors: any = {
+            red: '#5c2b29', orange: '#614a19', yellow: '#635d19',
+            green: '#345920', teal: '#16504b', blue: '#2d555e',
+            indigo: '#1e3a5f', purple: '#42275e', pink: '#5b2245'
+        };
+        return colors[this.color()] || '';
     }
 }

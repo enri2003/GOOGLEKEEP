@@ -11,6 +11,7 @@ import { NoteService } from "../note.service";
     template: `
     <div class="note-card"
          [style.background]="noteBg()"
+         [style.background-image]="note.background_image ? 'url(' + note.background_image + ')' : 'none'"
          [class.hovered]="hovered()"
          (click)="onCardClick($event)"
          (mouseenter)="hovered.set(true)"
@@ -64,6 +65,9 @@ import { NoteService } from "../note.service";
         }
 
         <div class="card-toolbar" (click)="$event.stopPropagation()">
+            <button class="tb" title="Opciones de fondo" (click)="colorOpen.emit({ note: this.note, event: $event })">
+                <i class="pi pi-palette"></i>
+            </button>
             <button class="tb" title="Recordatorio" (click)="addReminder($event)">
                 <i class="pi pi-bell"></i>
             </button>
@@ -92,6 +96,8 @@ import { NoteService } from "../note.service";
                 0 2px 8px rgba(0,0,0,0.35);
             transition: box-shadow 0.2s ease, transform 0.15s ease;
             overflow: hidden;
+            background-size: cover;
+            background-position: center;
         }
         .note-card::before {
             content: '';
@@ -224,6 +230,8 @@ export class NoteCardComponent {
     @Input() note!: Note;
     @Output() edit = new EventEmitter<Note>();
     @Output() menuOpen = new EventEmitter<{ note: Note; event: MouseEvent }>();
+    @Output() reminderOpen = new EventEmitter<{ note: Note; event: MouseEvent }>();
+    @Output() colorOpen = new EventEmitter<{ note: Note; event: MouseEvent }>();
 
     hovered = signal(false);
     selected = false;
@@ -240,9 +248,7 @@ export class NoteCardComponent {
 
     addReminder(event: MouseEvent) {
         event.stopPropagation();
-        if (this.note) {
-            this.noteService.update(this.note.id, { reminder: new Date() } as any).subscribe();
-        }
+        this.reminderOpen.emit({ note: this.note, event });
     }
 
     toggleItem(index: number) {

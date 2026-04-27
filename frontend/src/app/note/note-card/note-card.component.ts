@@ -68,7 +68,12 @@ import { NoteService } from "../note.service";
                 <i class="pi pi-bell"></i>
             </button>
             <button class="tb" title="Colaborador"><i class="pi pi-user-plus"></i></button>
-            <button class="tb" title="Imagen"><i class="pi pi-image"></i></button>
+            
+            <input type="file" #fileInput style="display: none" accept="image/*" (change)="onFileSelected($event)">
+            <button class="tb" title="Imagen" (click)="fileInput.click()">
+                <i class="pi pi-image"></i>
+            </button>
+
             <button class="tb" title="Archivar" (click)="archive()">
                 <i class="pi pi-inbox"></i>
             </button>
@@ -242,6 +247,19 @@ export class NoteCardComponent {
         event.stopPropagation();
         if (this.note) {
             this.noteService.update(this.note.id, { reminder: new Date() } as any).subscribe();
+        }
+    }
+
+    onFileSelected(event: any) {
+        const file = event.target.files[0];
+        if (file && this.note) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const imageUrl = reader.result as string;
+                this.note.image_url = imageUrl;
+                this.noteService.update(this.note.id, { image_url: imageUrl } as any).subscribe();
+            };
+            reader.readAsDataURL(file);
         }
     }
 

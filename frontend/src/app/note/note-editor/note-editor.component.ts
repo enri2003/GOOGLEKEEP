@@ -17,10 +17,14 @@ import { NoteService } from "../note.service";
               [showHeader]="false"
               styleClass="note-editor-dialog">
 
-        <!-- Área de contenido -->
         <div class="editor-body" [style.background]="noteBg()">
+            
+            @if (editImageUrl) {
+                <div style="position: relative; margin: -16px -16px 10px;">
+                    <img [src]="editImageUrl" style="width: 100%; max-height: 400px; object-fit: cover;" />
+                </div>
+            }
 
-            <!-- Título + Pin -->
             <div class="editor-title-row">
                 <input type="text" [(ngModel)]="editTitle" placeholder="Título"
                        class="editor-title-input" />
@@ -30,7 +34,6 @@ import { NoteService } from "../note.service";
                 </button>
             </div>
 
-            <!-- Contenido -->
             @if (note?.type === 'checklist') {
                 <div class="editor-checklist">
                     @for (item of editItems; track $index) {
@@ -54,15 +57,13 @@ import { NoteService } from "../note.service";
                           class="editor-textarea" rows="7"></textarea>
             }
 
-            <!-- Timestamp -->
             <div class="editor-timestamp">Editado: {{ now() }}</div>
         </div>
 
-        <!-- Toolbar inferior -->
         <div class="editor-toolbar" [style.background]="noteBg()">
             <div class="toolbar-left">
                 <button type="button" class="tb-btn" title="Estilo de texto"><b style="font-size:13px;font-family:serif">A</b></button>
-                <!-- Color picker -->
+                
                 <div class="color-picker-wrap">
                     <button type="button" class="tb-btn" title="Color de fondo"
                             (click)="showColors.set(!showColors())">
@@ -89,7 +90,12 @@ import { NoteService } from "../note.service";
                 </div>
                 <button type="button" class="tb-btn" title="Recordatorio"><i class="pi pi-bell"></i></button>
                 <button type="button" class="tb-btn" title="Colaborador"><i class="pi pi-user-plus"></i></button>
-                <button type="button" class="tb-btn" title="Imagen"><i class="pi pi-image"></i></button>
+                
+                <input type="file" #fileInput style="display: none" accept="image/*" (change)="onFileSelected($event)">
+                <button type="button" class="tb-btn" title="Imagen" (click)="fileInput.click()">
+                    <i class="pi pi-image"></i>
+                </button>
+
                 <button type="button" class="tb-btn" title="Archivar" (click)="archive()">
                     <i class="pi pi-inbox"></i>
                 </button>
@@ -215,6 +221,7 @@ export class NoteEditorComponent implements OnChanges {
 
     editTitle = '';
     editContent = '';
+    editImageUrl = '';
     editItems: NoteItem[] = [];
     editPinned = false;
     editColor = 'default';
@@ -228,6 +235,7 @@ export class NoteEditorComponent implements OnChanges {
         if (this.note) {
             this.editTitle = this.note.title ?? '';
             this.editContent = this.note.content ?? '';
+            this.editImageUrl = this.note.image_url ?? '';
             this.editItems = this.note.items ? this.note.items.map(i => ({ ...i })) : [];
             this.editPinned = this.note.pinned;
             this.editColor = this.note.color ?? 'default';
@@ -255,6 +263,20 @@ export class NoteEditorComponent implements OnChanges {
 
     applyColor() {
         if (this.note) this.noteService.update(this.note.id, { color: this.editColor }).subscribe();
+    }
+
+    onFileSelected(event: any) {
+        const file = event.target.files[0];
+        if (file && this.note) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                this.editImageUrl = reader.result as string;
+                if (this.note) {
+                    this.noteService.update(this.note.id, { image_url: this.editImageUrl } as any).subscribe();
+                }
+            };
+            reader.readAsDataURL(file);
+        }
     }
 
     archive() {
@@ -302,6 +324,7 @@ export class NoteEditorComponent implements OnChanges {
             this.noteService.update(this.note.id, {
                 title: this.editTitle,
                 content: this.editContent,
+                image_url: this.editImageUrl,
                 items: this.note.type === 'checklist' ? this.editItems : undefined,
                 pinned: this.editPinned,
                 color: this.editColor,

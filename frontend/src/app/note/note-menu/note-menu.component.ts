@@ -48,6 +48,16 @@ export class NoteMenuComponent implements OnChanges {
         } else {
             this.items = [
                 {
+                    label: 'Agregar recordatorio',
+                    icon: 'pi pi-bell',
+                    command: () => {
+                        if (this.note) {
+                            // Esto guarda la fecha actual en la BD para que el recordatorio sea visible
+                            this.noteService.update(this.note.id, { reminder: new Date() } as any).subscribe();
+                        }
+                    }
+                },
+                {
                     label: 'Borrar la nota',
                     icon: 'pi pi-trash',
                     command: () => {

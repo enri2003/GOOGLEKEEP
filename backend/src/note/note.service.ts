@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { Repository } from "typeorm";
+import { Repository, IsNull, Not } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Note } from "./model/note.model";
 import { CreateNoteDto, UpdateNoteDto } from "./dto/note.dto";
@@ -12,7 +12,6 @@ export class NoteService {
         private readonly repository: Repository<Note>
     ) {}
 
-    // Notas activas (no archivadas, no eliminadas)
     getNotes(userId: number) {
         return this.repository.find({
             where: { usuario: { id: userId }, archived: false },
@@ -20,7 +19,6 @@ export class NoteService {
         });
     }
 
-    // Notas archivadas
     getArchived(userId: number) {
         return this.repository.find({
             where: { usuario: { id: userId }, archived: true },
@@ -28,7 +26,6 @@ export class NoteService {
         });
     }
 
-    // Papelera (soft deleted)
     getTrash(userId: number) {
         return this.repository.find({
             where: { usuario: { id: userId } },
@@ -37,15 +34,15 @@ export class NoteService {
         }).then(notes => notes.filter(n => n.deleted_at !== null));
     }
 
-    // Notas con recordatorio
     getReminders(userId: number) {
-        return this.repository
-            .createQueryBuilder('note')
-            .where('note.usuario_id = :userId', { userId })
-            .andWhere('note.reminder IS NOT NULL')
-            .andWhere('note.archived = false')
-            .orderBy('note.reminder', 'ASC')
-            .getMany();
+        return this.repository.find({
+            where: { 
+                usuario: { id: userId }, 
+                reminder: Not(IsNull()), 
+                archived: false 
+            },
+            order: { reminder: 'ASC' },
+        });
     }
 
     async create(dto: CreateNoteDto, userId: number) {
@@ -75,26 +72,22 @@ export class NoteService {
         return { archived: !note.archived };
     }
 
-    // Mover a papelera (soft delete)
     async softDelete(id: number, userId: number) {
         await this.findOwned(id, userId);
         await this.repository.softDelete(id);
         return { message: 'Nota movida a papelera' };
     }
 
-    // Restaurar desde papelera
     async restore(id: number, userId: number) {
         await this.repository.restore(id);
         return { message: 'Nota restaurada' };
     }
 
-    // Eliminar permanentemente
     async deletePermanent(id: number, userId: number) {
         await this.repository.delete(id);
         return { message: 'Nota eliminada permanentemente' };
     }
 
-    // Duplicar nota
     async duplicate(id: number, userId: number) {
         const note = await this.findOwned(id, userId);
         const copy = this.repository.create({
@@ -111,11 +104,10 @@ export class NoteService {
         return this.repository.save(copy);
     }
 
-    // Búsqueda por texto
     search(query: string, userId: number) {
         return this.repository
             .createQueryBuilder('note')
-            .where('note.usuario_id = :userId', { userId })
+            .where('note.usuarioId = :userId', { userId })
             .andWhere('note.archived = false')
             .andWhere('(LOWER(note.title) LIKE :q OR LOWER(note.content) LIKE :q)', { q: `%${query.toLowerCase()}%` })
             .orderBy('note.updated_at', 'DESC')

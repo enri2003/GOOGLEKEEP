@@ -16,36 +16,30 @@ import { NoteService } from "../note.service";
          (mouseenter)="hovered.set(true)"
          (mouseleave)="hovered.set(false)">
 
-        <!-- Checkbox de selección -->
         <div class="select-check" (click)="$event.stopPropagation()">
             <div class="check-circle" [class.checked]="selected" (click)="selected = !selected">
                 @if (selected) { <i class="pi pi-check" style="font-size:10px;color:white"></i> }
             </div>
         </div>
 
-        <!-- Pin button -->
         <button type="button" class="pin-btn" title="Fijar"
                 [class.is-pinned]="note.pinned"
                 (click)="$event.stopPropagation(); pin()">
             <i class="pi pi-thumbtack"></i>
         </button>
 
-        <!-- Imagen -->
         @if (note.image_url) {
             <img [src]="note.image_url" alt="" class="note-img" />
         }
 
-        <!-- Título -->
         @if (note.title) {
             <div class="note-title">{{ note.title }}</div>
         }
 
-        <!-- Contenido -->
         @if (note.type === 'text' && note.content) {
             <div class="note-content">{{ note.content }}</div>
         }
 
-        <!-- Checklist -->
         @if (note.type === 'checklist' && note.items?.length) {
             <div class="note-checklist" (click)="$event.stopPropagation()">
                 @for (item of (note.items ?? []); track $index) {
@@ -62,7 +56,6 @@ import { NoteService } from "../note.service";
             </div>
         }
 
-        <!-- Reminder badge -->
         @if (note.reminder) {
             <div class="reminder-pill">
                 <i class="pi pi-bell"></i>
@@ -70,9 +63,10 @@ import { NoteService } from "../note.service";
             </div>
         }
 
-        <!-- Toolbar hover -->
         <div class="card-toolbar" (click)="$event.stopPropagation()">
-            <button class="tb" title="Recordatorio"><i class="pi pi-bell"></i></button>
+            <button class="tb" title="Recordatorio" (click)="addReminder($event)">
+                <i class="pi pi-bell"></i>
+            </button>
             <button class="tb" title="Colaborador"><i class="pi pi-user-plus"></i></button>
             <button class="tb" title="Imagen"><i class="pi pi-image"></i></button>
             <button class="tb" title="Archivar" (click)="archive()">
@@ -92,7 +86,6 @@ import { NoteService } from "../note.service";
             position: relative;
             min-height: 72px;
             break-inside: avoid;
-            /* Borde con gradiente sutil usando box-shadow multicapa */
             box-shadow:
                 0 0 0 1px rgba(255,255,255,0.08),
                 inset 0 1px 0 rgba(255,255,255,0.06),
@@ -100,8 +93,6 @@ import { NoteService } from "../note.service";
             transition: box-shadow 0.2s ease, transform 0.15s ease;
             overflow: hidden;
         }
-
-        /* Línea de acento superior (invisible por defecto) */
         .note-card::before {
             content: '';
             position: absolute;
@@ -111,7 +102,6 @@ import { NoteService } from "../note.service";
             transition: background 0.25s ease;
             border-radius: 0 0 4px 4px;
         }
-
         .note-card:hover, .note-card.hovered {
             box-shadow:
                 0 0 0 1px rgba(255,255,255,0.18),
@@ -123,8 +113,6 @@ import { NoteService } from "../note.service";
         .note-card:hover::before, .note-card.hovered::before {
             background: linear-gradient(90deg, transparent, rgba(251,188,4,0.4), transparent);
         }
-
-        /* Checkbox selección */
         .select-check {
             position: absolute; top: 10px; left: 10px;
             opacity: 0; transition: opacity 0.15s;
@@ -143,8 +131,6 @@ import { NoteService } from "../note.service";
             border-color: #FBBC04;
         }
         .check-circle:hover { border-color: rgba(255,255,255,0.6); }
-
-        /* Pin */
         .pin-btn {
             position: absolute; top: 8px; right: 8px;
             background: transparent; border: none; cursor: pointer;
@@ -159,8 +145,6 @@ import { NoteService } from "../note.service";
         }
         .note-card:hover .pin-btn { opacity: 1; }
         .pin-btn:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
-
-        /* Imagen */
         .note-img {
             width: calc(100% + 28px);
             margin: -14px -14px 10px;
@@ -168,8 +152,6 @@ import { NoteService } from "../note.service";
             object-fit: cover;
             border-radius: 12px 12px 0 0;
         }
-
-        /* Título */
         .note-title {
             color: #e8eaed;
             font-weight: 600;
@@ -179,8 +161,6 @@ import { NoteService } from "../note.service";
             padding-right: 22px;
             word-break: break-word;
         }
-
-        /* Contenido */
         .note-content {
             color: rgba(255,255,255,0.55);
             font-size: 13px;
@@ -190,8 +170,6 @@ import { NoteService } from "../note.service";
             white-space: pre-wrap;
             word-break: break-word;
         }
-
-        /* Checklist */
         .note-checklist { margin: 4px 0 6px; }
         .check-row {
             display: flex; align-items: center; gap: 8px;
@@ -215,8 +193,6 @@ import { NoteService } from "../note.service";
             text-decoration: line-through;
             color: rgba(255,255,255,0.25);
         }
-
-        /* Reminder */
         .reminder-pill {
             display: inline-flex; align-items: center; gap: 4px;
             margin-top: 8px; padding: 3px 9px;
@@ -226,8 +202,6 @@ import { NoteService } from "../note.service";
             color: rgba(255,255,255,0.45); font-size: 11px;
         }
         .reminder-pill .pi { font-size: 10px; }
-
-        /* Toolbar */
         .card-toolbar {
             display: flex; align-items: center; gap: 1px;
             margin-top: 8px;
@@ -263,6 +237,13 @@ export class NoteCardComponent {
     pin() { this.noteService.togglePin(this.note.id).subscribe(); }
 
     archive() { this.noteService.toggleArchive(this.note.id).subscribe(); }
+
+    addReminder(event: MouseEvent) {
+        event.stopPropagation();
+        if (this.note) {
+            this.noteService.update(this.note.id, { reminder: new Date() } as any).subscribe();
+        }
+    }
 
     toggleItem(index: number) {
         if (!this.note.items) return;

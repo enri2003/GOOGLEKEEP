@@ -1,31 +1,30 @@
-import { Component, EventEmitter, inject, Input, OnChanges, Output, signal } from "@angular/core";
+import { Component, EventEmitter, inject, Input, OnChanges, Output, signal, ViewChild } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { DialogModule } from "primeng/dialog";
 import { Note, NoteItem, getNoteBackground, NOTE_COLORS } from "../shared/note.model";
 import { NoteService } from "../note.service";
+import { ColorPickerComponent } from "../color-picker/color-picker.component";
 
 @Component({
     selector: 'app-note-editor',
     standalone: true,
-    imports: [CommonModule, FormsModule, DialogModule],
+    imports: [CommonModule, FormsModule, DialogModule, ColorPickerComponent],
     template: `
     <p-dialog [visible]="visible()" (onHide)="close()"
               [modal]="true" [draggable]="false" [resizable]="false"
               [style]="{width:'600px', 'max-width':'95vw', 'border-radius':'10px'}"
-              [contentStyle]="{'background': noteBg(), 'border-radius': '10px', 'padding': '0', 'border': 'none'}"
+              [contentStyle]="{'background': noteBg(), 'background-image': editBackgroundImage ? 'url(' + editBackgroundImage + ')' : 'none', 'background-size': 'cover', 'background-position': 'center', 'border-radius': '10px', 'padding': '0', 'border': 'none'}"
               [showHeader]="false"
               styleClass="note-editor-dialog">
 
         <div class="editor-body" [style.background]="noteBg()">
             
             @if (editImageUrl) {
-                <div style="position: relative; margin: -16px -16px 10px;">
-                    <img [src]="editImageUrl" style="width: 100%; max-height: 400px; object-fit: cover;" />
-                    <button type="button" 
-                            style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 4px; cursor: pointer; padding: 5px;"
-                            (click)="removeImage()">
-                        <i class="pi pi-trash"></i>
+                <div class="editor-image-wrap">
+                    <img [src]="editImageUrl" alt="" class="editor-img" />
+                    <button class="remove-img-btn" (click)="removeImage()" title="Eliminar imagen">
+                        <i class="pi pi-times"></i>
                     </button>
                 </div>
             }
@@ -78,31 +77,13 @@ import { NoteService } from "../note.service";
 
         <div class="editor-toolbar" [style.background]="noteBg()">
             <div class="toolbar-left" style="position: relative;">
-                <button type="button" class="tb-btn" title="Estilo de texto"><b style="font-size:13px;font-family:serif">A</b></button>
                 
                 <div class="color-picker-wrap">
-                    <button type="button" class="tb-btn" title="Color de fondo"
-                            (click)="showColors.set(!showColors())">
+                    <button type="button" class="tb-btn" title="Opciones de fondo"
+                            (click)="colorPicker.show($event, note)">
                         <i class="pi pi-palette"></i>
                     </button>
-                    @if (showColors()) {
-                        <div class="color-popup">
-                            @for (c of colors; track c.value) {
-                                <button type="button" class="color-dot"
-                                        [style.background]="c.bg"
-                                        [title]="c.name"
-                                        [class.selected]="editColor === c.value"
-                                        (click)="editColor = c.value; showColors.set(false); applyColor()">
-                                    @if (c.value === 'default') {
-                                        <i class="pi pi-times" style="font-size:9px;color:#9aa0a6"></i>
-                                    }
-                                    @if (editColor === c.value && c.value !== 'default') {
-                                        <i class="pi pi-check" style="font-size:9px;color:white"></i>
-                                    }
-                                </button>
-                            }
-                        </div>
-                    }
+                    <app-color-picker #colorPicker (colorChanged)="editColor = $event; applyColor()" (imageChanged)="editBackgroundImage = $event; applyColor()" />
                 </div>
                 
                 <button type="button" class="tb-btn" title="Recordatorio"><i class="pi pi-bell"></i></button>
@@ -123,10 +104,10 @@ import { NoteService } from "../note.service";
                     </div>
                 }
                 
-                <input type="file" #fileInput style="display: none" accept="image/*" (change)="onFileSelected($event)">
                 <button type="button" class="tb-btn" title="Imagen" (click)="fileInput.click()">
                     <i class="pi pi-image"></i>
                 </button>
+                <input type="file" #fileInput style="display: none" accept="image/*" (change)="onFileSelected($event)">
 
                 <button type="button" class="tb-btn" title="Archivar" (click)="archive()">
                     <i class="pi pi-inbox"></i>
@@ -201,6 +182,27 @@ import { NoteService } from "../note.service";
             line-height: 1.7; min-height: 120px;
         }
         .editor-textarea::placeholder { color: #5f6368; }
+        .editor-image-wrap {
+            position: relative;
+            margin: -16px -16px 12px;
+            max-height: 450px;
+            overflow: hidden;
+        }
+        .editor-img {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+        }
+        .remove-img-btn {
+            position: absolute; top: 12px; right: 12px;
+            background: rgba(0,0,0,0.5); color: white;
+            border: none; border-radius: 50%;
+            width: 32px; height: 32px; display: flex;
+            align-items: center; justify-content: center;
+            cursor: pointer; font-size: 14px;
+            transition: background 0.2s;
+        }
+        .remove-img-btn:hover { background: rgba(0,0,0,0.7); }
         .editor-timestamp {
             text-align: right; color: #5f6368; font-size: 11px; padding: 8px 0 6px;
         }
@@ -258,11 +260,13 @@ export class NoteEditorComponent implements OnChanges {
     editPinned = false;
     editColor = 'default';
     editCollaborators: string[] = [];
-
+    editBackgroundImage: string | null = null;
     showColors = signal(false);
     showShare = false;
     shareEmail = '';
     colors = NOTE_COLORS;
+
+    @ViewChild('colorPicker') colorPicker!: ColorPickerComponent;
 
     private history: { title: string; content: string; items: NoteItem[] }[] = [];
     private historyIndex = -1;
@@ -276,7 +280,7 @@ export class NoteEditorComponent implements OnChanges {
             this.editPinned = this.note.pinned;
             this.editColor = this.note.color ?? 'default';
             this.editCollaborators = this.note.collaborators ? [...this.note.collaborators] : [];
-            
+            this.editBackgroundImage = this.note.background_image ?? null;
             this.history = [];
             this.historyIndex = -1;
             this.pushHistory();
@@ -315,7 +319,12 @@ export class NoteEditorComponent implements OnChanges {
     }
 
     applyColor() {
-        if (this.note) this.noteService.update(this.note.id, { color: this.editColor }).subscribe();
+        if (this.note) {
+            this.noteService.update(this.note.id, { 
+                color: this.editColor,
+                background_image: this.editBackgroundImage
+            } as any).subscribe();
+        }
     }
 
     onFileSelected(event: any) {
@@ -393,8 +402,9 @@ export class NoteEditorComponent implements OnChanges {
                 items: this.note.type === 'checklist' ? this.editItems : undefined,
                 pinned: this.editPinned,
                 color: this.editColor,
-                collaborators: this.editCollaborators
-            }).subscribe();
+                collaborators: this.editCollaborators,
+                background_image: this.editBackgroundImage,
+            } as any).subscribe();
         }
         this.showColors.set(false);
         this.showShare = false;

@@ -41,6 +41,9 @@ export class Note {
     @Column({ nullable: true })
     image_url: string | null;
 
+    @Column({ nullable: true })
+    background_image: string | null;
+
     @ManyToOne(() => Usuario, { nullable: false, onDelete: 'CASCADE' })
     @JoinColumn({ name: 'usuario_id' })
     usuario: Usuario;

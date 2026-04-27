@@ -51,7 +51,7 @@ import { NoteService } from '@/app/note/note.service';
             </button>
             <button
                 class="action-btn"
-                title="Vista de cuadricula / lista"
+                [title]="layoutService.viewMode() === 'grid' ? 'Vista de lista' : 'Vista de cuadrícula'"
                 (click)="layoutService.toggleViewMode()"
             >
                 <i

@@ -11,6 +11,7 @@ import { NoteService } from "../note.service";
     template: `
     <div class="note-card"
          [style.background]="noteBg()"
+         [style.background-image]="note.background_image ? 'url(' + note.background_image + ')' : 'none'"
          [class.hovered]="hovered()"
          (click)="onCardClick($event)"
          (mouseenter)="hovered.set(true)"
@@ -63,16 +64,20 @@ import { NoteService } from "../note.service";
             </div>
         }
 
+        <!-- Toolbar -->
         <div class="card-toolbar" (click)="$event.stopPropagation()">
-            <button class="tb" [title]="note.reminder ? 'Quitar recordatorio' : 'Añadir recordatorio'" (click)="toggleReminder($event)">
-                <i class="pi pi-bell" [style.color]="note.reminder ? '#FBBC04' : ''"></i>
+            <button class="tb" title="Opciones de fondo" (click)="colorOpen.emit({ note: this.note, event: $event })">
+                <i class="pi pi-palette"></i>
+            </button>
+            <button class="tb" title="Recordatorio" (click)="addReminder($event)">
+                <i class="pi pi-bell"></i>
             </button>
             <button class="tb" title="Colaborador"><i class="pi pi-user-plus"></i></button>
             
-            <input type="file" #fileInput style="display: none" accept="image/*" (change)="onFileSelected($event)">
-            <button class="tb" title="Imagen" (click)="fileInput.click()">
+            <button class="tb" title="Añadir imagen" (click)="fileInput.click()">
                 <i class="pi pi-image"></i>
             </button>
+            <input #fileInput type="file" (change)="onImageSelect($event)" accept="image/*" style="display: none" />
 
             <button class="tb" title="Archivar" (click)="archive()">
                 <i class="pi pi-inbox"></i>
@@ -97,6 +102,8 @@ import { NoteService } from "../note.service";
                 0 2px 8px rgba(0,0,0,0.35);
             transition: box-shadow 0.2s ease, transform 0.15s ease;
             overflow: hidden;
+            background-size: cover;
+            background-position: center;
         }
         .note-card::before {
             content: '';
@@ -153,9 +160,10 @@ import { NoteService } from "../note.service";
         .note-img {
             width: calc(100% + 28px);
             margin: -14px -14px 10px;
-            max-height: 200px;
+            max-height: 250px;
             object-fit: cover;
-            border-radius: 12px 12px 0 0;
+            border-radius: 0;
+            display: block;
         }
         .note-title {
             color: #e8eaed;
@@ -229,6 +237,8 @@ export class NoteCardComponent {
     @Input() note!: Note;
     @Output() edit = new EventEmitter<Note>();
     @Output() menuOpen = new EventEmitter<{ note: Note; event: MouseEvent }>();
+    @Output() reminderOpen = new EventEmitter<{ note: Note; event: MouseEvent }>();
+    @Output() colorOpen = new EventEmitter<{ note: Note; event: MouseEvent }>();
 
     hovered = signal(false);
     selected = false;
@@ -243,28 +253,21 @@ export class NoteCardComponent {
 
     archive() { this.noteService.toggleArchive(this.note.id).subscribe(); }
 
-    toggleReminder(event: MouseEvent) {
+    addReminder(event: MouseEvent) {
         event.stopPropagation();
-        if (this.note) {
-            // Si tiene recordatorio, lo ponemos en null. Si no tiene, le ponemos la fecha actual.
-            const newReminder = this.note.reminder ? null : new Date();
-            this.noteService.update(this.note.id, { reminder: newReminder } as any).subscribe(() => {
-                this.note.reminder = newReminder as any;
-            });
-        }
+        this.reminderOpen.emit({ note: this.note, event });
     }
 
-    onFileSelected(event: any) {
+    onImageSelect(event: any) {
         const file = event.target.files[0];
-        if (file && this.note) {
-            const reader = new FileReader();
-            reader.onload = () => {
-                const imageUrl = reader.result as string;
-                this.note.image_url = imageUrl;
-                this.noteService.update(this.note.id, { image_url: imageUrl } as any).subscribe();
-            };
-            reader.readAsDataURL(file);
-        }
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+            const base64 = e.target.result;
+            this.noteService.update(this.note.id, { image_url: base64 }).subscribe();
+        };
+        reader.readAsDataURL(file);
     }
 
     toggleItem(index: number) {

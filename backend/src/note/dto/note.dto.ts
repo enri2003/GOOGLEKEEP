@@ -45,6 +45,10 @@ export class CreateNoteDto {
     @IsArray()
     @IsString({ each: true })
     collaborators?: string[];
+
+    @IsOptional()
+    @IsString()
+    background_image?: string;
 }
 
 export class UpdateNoteDto {
@@ -89,4 +93,8 @@ export class UpdateNoteDto {
     @IsArray()
     @IsString({ each: true })
     collaborators?: string[];
+
+    @IsOptional()
+    @IsString()
+    background_image?: string;
 }

@@ -192,7 +192,6 @@ import { LayoutService } from '@/app/layout/service/layout.service';
 export class NoteListComponent implements OnInit {
     readonly noteService = inject(NoteService);
     layoutService = inject(LayoutService);
-    route = inject(ActivatedRoute);
 
     mode = signal<'notes' | 'archived' | 'trash' | 'reminders'>('notes');
     editingNote = signal<Note | null>(null);
@@ -202,7 +201,7 @@ export class NoteListComponent implements OnInit {
     @ViewChild('noteMenu') noteMenu!: NoteMenuComponent;
 
     ngOnInit() {
-        this.route.data.subscribe((data: any) => {
+        this.route.data.subscribe(data => {
             const m = (data['mode'] ?? 'notes') as 'notes' | 'archived' | 'trash' | 'reminders';
             this.mode.set(m);
             this.noteService.load(m);

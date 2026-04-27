@@ -17,10 +17,31 @@ import { filter, Subject, takeUntil } from 'rxjs';
     styles: [],
     template: `
     <div class="layout-sidebar keep-sidebar">
-        <!-- brand-row, orbes y hero-shell eliminados -->
+        <div class="deco-section">
+            <div class="brand-row">
+                <div class="brand-mark">
+                    <span class="brand-dot"></span>
+                    <span>Panel Keep</span>
+                </div>
+
+                @if (noteService.notes().length) {
+                    <span class="brand-count">{{ noteService.notes().length }}</span>
+                }
+            </div>
+
+            <div class="hero-shell">
+                <div class="ambient-orb orb-one"></div>
+                <div class="ambient-orb orb-two"></div>
+                <!-- mini-canvas eliminado -->
+            </div>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
         <div class="menu-section">
             <app-menu></app-menu>
         </div>
+
         <div class="sidebar-footer">
             <div class="user-row" title="Ver perfil" (click)="openProfile()">
                 <div class="user-avatar">{{ authService.getUserInitial() }}</div>
@@ -28,7 +49,11 @@ import { filter, Subject, takeUntil } from 'rxjs';
                     <div class="user-name">{{ userName() }}</div>
                     <div class="user-email">{{ userEmail() }}</div>
                 </div>
-                <!-- Burbuja de conteo eliminada -->
+
+                @if (noteService.notes().length) {
+                    <span class="note-count-badge">{{ noteService.notes().length }}</span>
+                }
+
                 <button class="user-logout" type="button" title="Cerrar sesion" (click)="$event.stopPropagation(); logout()">
                     <i class="pi pi-sign-out"></i>
                 </button>

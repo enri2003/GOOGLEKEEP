@@ -18,13 +18,12 @@ interface LayoutState {
 }
 
 // Estado global para la vista de notas (cuadricula o lista)
+    viewMode = signal<'grid' | 'list'>('grid');
 
 @Injectable({
     providedIn: 'root'
 })
 export class LayoutService {
-    viewMode = signal<'grid' | 'list'>('grid');
-
     layoutConfig = signal<LayoutConfig>({
         preset: 'Aura',
         primary: 'amber',

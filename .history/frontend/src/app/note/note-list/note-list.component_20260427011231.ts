@@ -176,23 +176,11 @@ import { LayoutService } from '@/app/layout/service/layout.service';
             margin: 0;
             font-weight: 500;
         }
-
-        .notes-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .notes-list app-note-card {
-            width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-        }
     `]
 })
 export class NoteListComponent implements OnInit {
     readonly noteService = inject(NoteService);
     layoutService = inject(LayoutService);
-    route = inject(ActivatedRoute);
 
     mode = signal<'notes' | 'archived' | 'trash' | 'reminders'>('notes');
     editingNote = signal<Note | null>(null);
@@ -202,7 +190,7 @@ export class NoteListComponent implements OnInit {
     @ViewChild('noteMenu') noteMenu!: NoteMenuComponent;
 
     ngOnInit() {
-        this.route.data.subscribe((data: any) => {
+        this.route.data.subscribe(data => {
             const m = (data['mode'] ?? 'notes') as 'notes' | 'archived' | 'trash' | 'reminders';
             this.mode.set(m);
             this.noteService.load(m);

@@ -17,10 +17,27 @@ import { filter, Subject, takeUntil } from 'rxjs';
     styles: [],
     template: `
     <div class="layout-sidebar keep-sidebar">
-        <!-- brand-row, orbes y hero-shell eliminados -->
+        <div class="deco-section">
+            <div class="brand-row">
+                <div class="brand-mark">
+                    <span class="brand-dot"></span>
+                    <!-- Panel Keep eliminado -->
+                </div>
+                <!-- Número de notas eliminado -->
+            </div>
+            
+                <div class="ambient-orb orb-one"></div>
+                <div class="ambient-orb orb-two"></div>
+                <!-- mini-canvas eliminado -->
+            </div>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
         <div class="menu-section">
             <app-menu></app-menu>
         </div>
+
         <div class="sidebar-footer">
             <div class="user-row" title="Ver perfil" (click)="openProfile()">
                 <div class="user-avatar">{{ authService.getUserInitial() }}</div>

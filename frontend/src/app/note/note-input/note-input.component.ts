@@ -209,6 +209,7 @@ import { getNoteBackground, NOTE_COLORS } from "../shared/note.model";
             position: relative;
             max-height: 450px;
             overflow: hidden;
+            border-top: 1px solid rgba(255,255,255,0.06);
         }
         .input-image-preview img {
             width: 100%;
@@ -222,7 +223,9 @@ import { getNoteBackground, NOTE_COLORS } from "../shared/note.model";
             width: 28px; height: 28px; display: flex;
             align-items: center; justify-content: center;
             cursor: pointer; font-size: 14px;
+            transition: background 0.2s;
         }
+        .remove-img-btn:hover { background: rgba(0,0,0,0.7); }
 
         .input-footer {
             display: flex; align-items: center; justify-content: space-between;

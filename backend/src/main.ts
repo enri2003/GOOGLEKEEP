@@ -22,6 +22,11 @@ async function bootstrap() {
     transform: true,
   }));
 
+  // Aumentar el límite de carga para imágenes Base64
+  const express = require('express');
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
   var port = 3000;
   await app.listen(port);
   console.log(`🚀 Servidor corriendo en el puerto ${port}`);

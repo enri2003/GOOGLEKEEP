@@ -64,8 +64,8 @@ import { NoteService } from "../note.service";
         }
 
         <div class="card-toolbar" (click)="$event.stopPropagation()">
-            <button class="tb" title="Recordatorio" (click)="addReminder($event)">
-                <i class="pi pi-bell"></i>
+            <button class="tb" [title]="note.reminder ? 'Quitar recordatorio' : 'Añadir recordatorio'" (click)="toggleReminder($event)">
+                <i class="pi pi-bell" [style.color]="note.reminder ? '#FBBC04' : ''"></i>
             </button>
             <button class="tb" title="Colaborador"><i class="pi pi-user-plus"></i></button>
             
@@ -243,10 +243,14 @@ export class NoteCardComponent {
 
     archive() { this.noteService.toggleArchive(this.note.id).subscribe(); }
 
-    addReminder(event: MouseEvent) {
+    toggleReminder(event: MouseEvent) {
         event.stopPropagation();
         if (this.note) {
-            this.noteService.update(this.note.id, { reminder: new Date() } as any).subscribe();
+            // Si tiene recordatorio, lo ponemos en null. Si no tiene, le ponemos la fecha actual.
+            const newReminder = this.note.reminder ? null : new Date();
+            this.noteService.update(this.note.id, { reminder: newReminder } as any).subscribe(() => {
+                this.note.reminder = newReminder as any;
+            });
         }
     }
 
